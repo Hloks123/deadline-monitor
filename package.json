@@ -1,19 +1,24 @@
 {
-  "name": "doc-monitor-sa",
+  "name": "deadline-monitor",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:unit": "node --test src/lib/admin/userProvisioning.test.cjs src/lib/clientActivities.test.cjs src/lib/clientReports.test.cjs src/lib/clientTaskSelectors.test.cjs src/lib/clientWorkspaceContext.test.cjs src/lib/consultantActivities.test.cjs src/lib/consultantDashboardSelectors.test.cjs src/lib/consultantWork.test.cjs src/lib/monitoredRecords/auditHistory.test.cjs src/lib/monitoredRecords/monitoredRecordPatch.test.cjs src/lib/settingsStore.test.cjs",
+    "test:monitored-record-migration": "node scripts/test-monitored-record-migration.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
+    "docx": "^9.15.3",
+    "jspdf": "^4.2.1",
     "next": "16.4.5",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
@@ -22,6 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "supabase": "^3.1.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

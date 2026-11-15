@@ -1,0 +1,46 @@
+-- Fictional tenant-isolation test plan; intentionally contains no executable SQL.
+-- Do not remove the comment markers or run these snippets as setup without review.
+--
+-- Prepare fictional fixtures only in the development project, using a trusted
+-- administrative workflow after review:
+--   Organisation A: Demo Construction
+--   Organisation B: Sample Logistics
+--   User A: fictional client_user in Organisation A only
+--   User B: fictional client_user in Organisation B only
+-- Create Auth users through the approved Auth workflow. Do not put passwords,
+-- tokens, or real personal data in this file. Create each profile through the
+-- Auth trigger and create organisations/memberships only through trusted admin
+-- workflows. Assign each user the client_user role; do not use user metadata
+-- to assign roles.
+--
+-- As a trusted development fixture setup, create one responsible_people row in
+-- each organisation, with a fictional name and no profile_id (NULL). Optionally
+-- link a responsible person only to a profile with active membership in the
+-- same organisation. The validation trigger must reject a cross-organisation
+-- profile link and must accept profile_id = NULL.
+--
+-- Substitute fixture UUIDs only in an explicitly reviewed test session:
+--
+-- BEGIN;
+-- SET LOCAL ROLE authenticated;
+-- SELECT pg_catalog.set_config('request.jwt.claim.sub', '<USER_A_UUID>', true);
+-- SELECT id, name FROM public.organisations;
+-- Expected: Demo Construction only; Sample Logistics is not visible.
+-- SELECT id, organisation_id, name FROM public.responsible_people;
+-- Expected: Organisation A rows only; Organisation B rows are not visible.
+-- SELECT id, organisation_id, user_id, role
+-- FROM public.organisation_memberships;
+-- Expected: User A's own client_user membership only.
+-- UPDATE public.organisation_memberships
+-- SET role = 'administrator'
+-- WHERE user_id = '<USER_A_UUID>';
+-- Expected: permission denied; ordinary users have no membership UPDATE grant.
+-- RESET ROLE;
+-- ROLLBACK;
+--
+-- Repeat in a separate transaction with <USER_B_UUID>; only Sample Logistics
+-- and its responsible people should be visible.
+--
+-- In a trusted fixture-validation transaction, attempt to associate an
+-- Organisation A responsible person with User B's profile. The validation
+-- trigger must raise SQLSTATE 23514. Roll back all fixture changes afterward.
