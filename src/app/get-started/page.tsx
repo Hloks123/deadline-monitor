@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 type CoverageGroup = {
   title: string;
@@ -225,34 +225,55 @@ const plans: Record<string, Plan> = {
 export default function GetStartedPage() {
   const [recordCount, setRecordCount] = useState("");
   const [enquiryNotice, setEnquiryNotice] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
 
   const recommendedPlan = plans[recordCount] ?? null;
   const needsAssistance = recordCount === "not-sure";
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmittingRef.current) return;
 
-    const formData = new FormData(event.currentTarget);
-    const body = [
-      `Contact name: ${String(formData.get("contactName") ?? "").trim()}`,
-      `Company: ${String(formData.get("companyName") ?? "").trim()}`,
-      `Business email: ${String(formData.get("email") ?? "").trim()}`,
-      `Phone: ${String(formData.get("phone") ?? "").trim() || "Not supplied"}`,
-      `Industry: ${String(formData.get("industry") ?? "").trim()}`,
-      `Approximate number of records: ${String(formData.get("recordCount") ?? "").trim() || "Not supplied"}`,
-      `Preferred contact method: ${String(formData.get("contactMethod") ?? "").trim()}`,
-      "",
-      "Message:",
-      String(formData.get("message") ?? "").trim() || "Not supplied",
-    ].join("\n");
-    const mailtoUrl = new URL("mailto:consultant1@compimento.co.za");
-    mailtoUrl.searchParams.set("subject", "Deadline Monitor enquiry");
-    mailtoUrl.searchParams.set("body", body);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const payload = {
+      contactName: formData.get("contactName"),
+      companyName: formData.get("companyName"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      industry: formData.get("industry"),
+      recordCount: formData.get("recordCount"),
+      contactMethod: formData.get("contactMethod"),
+      message: formData.get("message"),
+      privacyConsent: formData.get("privacyConsent") === "on",
+      website: formData.get("website"),
+    };
 
-    setEnquiryNotice(
-      "This website has not sent or stored your enquiry. Review the prefilled email and send it from your email app, or email consultant1@compimento.co.za directly.",
-    );
-    window.location.href = mailtoUrl.toString();
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setEnquiryNotice("Sending enquiry...");
+    try {
+      const response = await fetch("/api/enquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (response.status !== 201) throw new Error("Enquiry was not accepted.");
+
+      form.reset();
+      setRecordCount("");
+      setEnquiryNotice(
+        "Thank you. Your enquiry has been sent successfully. We will contact you using the details provided.",
+      );
+    } catch {
+      setEnquiryNotice(
+        "We could not send your enquiry. Please email consultant1@compimento.co.za or call 073 501 9603.",
+      );
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -316,6 +337,19 @@ export default function GetStartedPage() {
         {/* FORM */}
         <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 md:p-10">
           <form className="space-y-8" onSubmit={handleSubmit}>
+            <div
+              aria-hidden="true"
+              className="absolute -left-[10000px] h-px w-px overflow-hidden"
+            >
+              <label htmlFor="website">Leave this field empty</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
             {/* CONTACT DETAILS */}
             <fieldset>
               <legend className="text-2xl font-bold text-slate-900">
@@ -334,6 +368,7 @@ export default function GetStartedPage() {
                   placeholder="Your full name"
                   required
                   autoComplete="name"
+                  maxLength={120}
                 />
 
                 <FormField
@@ -343,6 +378,7 @@ export default function GetStartedPage() {
                   placeholder="Business name"
                   required
                   autoComplete="organization"
+                  maxLength={160}
                 />
 
                 <FormField
@@ -352,6 +388,7 @@ export default function GetStartedPage() {
                   placeholder="name@company.co.za"
                   required
                   autoComplete="email"
+                  maxLength={254}
                 />
 
                 <FormField
@@ -361,6 +398,7 @@ export default function GetStartedPage() {
                   placeholder="+27"
                   required
                   autoComplete="tel"
+                  maxLength={30}
                 />
 
                 <div>
@@ -513,11 +551,9 @@ export default function GetStartedPage() {
               </p>
 
               <p className="mt-2 text-sm leading-6 text-teal-800">
-                The form opens your email application. This website has not
-                independently transmitted or stored your enquiry. Do not
-                include documents, full identity numbers, bank statements, tax
-                returns, passwords, SARS/CIPC credentials or confidential
-                document contents.
+                We use the information you provide to respond to your enquiry.
+                Do not include passwords, confidential documents or other
+                sensitive information in your message.
               </p>
 
               <p className="mt-3 text-xs leading-5 text-teal-800">
@@ -532,25 +568,34 @@ export default function GetStartedPage() {
               </p>
             </div>
 
+            <label className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+              <input
+                name="privacyConsent"
+                type="checkbox"
+                required
+                className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+              />
+              <span>
+                I consent to my supplied information being used to respond to
+                this enquiry.
+              </span>
+            </label>
+
             <div className="border-t border-slate-200 pt-8">
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="min-h-11 w-full rounded-xl bg-teal-700 px-8 py-3.5 font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 sm:w-auto"
               >
-                Submit Enquiry
+                {isSubmitting ? "Sending enquiry..." : "Submit Enquiry"}
               </button>
 
-              <p aria-live="polite" className="mt-4 text-sm leading-6 text-slate-600">
-                {enquiryNotice ||
-                  "Your email app will open with a draft for you to review and send. The website has not independently transmitted or stored your enquiry. If it does not open, email "}
-                {!enquiryNotice && (
-                  <a
-                    className="font-semibold text-teal-800 underline underline-offset-2"
-                    href="mailto:consultant1@compimento.co.za"
-                  >
-                    consultant1@compimento.co.za
-                  </a>
-                )}
+              <p
+                aria-live="polite"
+                role="status"
+                className="mt-4 text-sm leading-6 text-slate-600"
+              >
+                {enquiryNotice}
               </p>
             </div>
           </form>
@@ -877,6 +922,7 @@ function FormField({
   placeholder,
   required = false,
   autoComplete,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -884,6 +930,7 @@ function FormField({
   placeholder: string;
   required?: boolean;
   autoComplete?: string;
+  maxLength?: number;
 }) {
   return (
     <div>
@@ -905,6 +952,7 @@ function FormField({
         required={required}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        maxLength={maxLength}
         className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
       />
     </div>
