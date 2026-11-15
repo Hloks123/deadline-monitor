@@ -3,6 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --dm-navy: #020617;
+  --dm-teal: #0d9488;
+  --dm-workspace: #f8fafc;
+  --dm-surface: #ffffff;
+  --dm-border: #e2e8f0;
+  --dm-text-primary: #0f172a;
+  --dm-text-secondary: #475569;
+  --dm-success: #059669;
+  --dm-warning: #d97706;
+  --dm-danger: #dc2626;
+  --dm-info: #2563eb;
 }
 
 @theme inline {
@@ -23,4 +34,249 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+:where(a[href], button:not(:disabled), [role="button"]:not([aria-disabled="true"]), summary) {
+  cursor: pointer;
+}
+
+:where(button:disabled, [aria-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+:where(input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), textarea) {
+  cursor: text;
+}
+
+:where(select) {
+  cursor: pointer;
+}
+
+:where(a[href], button, input, select, textarea, [role="button"], summary):focus-visible {
+  outline: 2px solid var(--dm-teal);
+  outline-offset: 2px;
+}
+
+.dm-data-table {
+  border-collapse: collapse;
+}
+
+.dm-data-table th,
+.dm-data-table td {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.dm-data-table thead th {
+  background-color: var(--dm-workspace);
+  color: var(--dm-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.dm-data-table tbody tr:has(a[href], button:not(:disabled)) {
+  transition: background-color 120ms ease;
+}
+
+.dm-data-table tbody tr:has(a[href], button:not(:disabled)):hover {
+  background-color: var(--dm-workspace);
+}
+
+.dm-data-table tbody tr[aria-selected="true"] {
+  background-color: #f0fdfa;
+  box-shadow: inset 2px 0 var(--dm-teal);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10pt;
+  }
+
+  header,
+  nav[aria-labelledby="contents-heading"],
+  .print-hidden {
+    display: none !important;
+  }
+
+  article {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  a {
+    color: #16324f !important;
+    text-decoration: none !important;
+  }
+
+  footer {
+    margin-top: 24px;
+  }
+
+  @page calendar {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  body.calendar-print-active,
+  body.calendar-print-active * {
+    visibility: hidden !important;
+  }
+
+  body.calendar-print-active #client-calendar-print-root,
+  body.calendar-print-active #client-calendar-print-root *,
+  body.calendar-print-active #consultant-calendar-print-root,
+  body.calendar-print-active #consultant-calendar-print-root *,
+  body.calendar-print-active #client-calendar-report-print-root,
+  body.calendar-print-active #client-calendar-report-print-root * {
+    visibility: visible !important;
+  }
+
+  body.calendar-print-active #client-calendar-print-root,
+  body.calendar-print-active #consultant-calendar-print-root {
+    position: absolute;
+    inset: 0;
+    page: calendar;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    background: #ffffff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.calendar-print-active #consultant-calendar-print-root {
+    font-size: 9pt;
+  }
+
+  body.calendar-print-active #client-calendar-report-print-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: #ffffff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.calendar-print-active .calendar-print-hide,
+  body.calendar-print-active .calendar-print-hide * {
+    display: none !important;
+  }
+
+  body.calendar-print-active .calendar-report-print-hide,
+  body.calendar-print-active .calendar-report-print-hide * {
+    display: none !important;
+  }
+
+  body.calendar-print-active .calendar-print-heading {
+    display: block !important;
+    margin-bottom: 0.4rem;
+  }
+
+  body.calendar-print-active .calendar-report-print-heading {
+    display: block !important;
+    margin-bottom: 0.4rem;
+  }
+
+  body.calendar-print-active .calendar-print-area {
+    margin: 0;
+  }
+
+  body.calendar-print-active .calendar-print-area .grid-cols-7 > * {
+    min-height: 5.2rem;
+  }
+
+  body.calendar-print-active .calendar-print-area .hidden.sm\:block {
+    display: block !important;
+  }
+
+  body.calendar-print-active .calendar-print-area .sm\:hidden {
+    display: none !important;
+  }
+
+  body.calendar-print-active .calendar-print-disclaimer {
+    display: block !important;
+  }
+
+  body.calendar-print-active .calendar-report-print-disclaimer {
+    display: block !important;
+    margin-top: 0.5rem;
+  }
+
+  body.calendar-print-active #client-calendar-print-root a {
+    color: #16324f !important;
+    text-decoration: none !important;
+  }
+
+  body.calendar-print-active #consultant-calendar-print-root a {
+    color: #16324f !important;
+    text-decoration: none !important;
+  }
+
+  body.calendar-print-active #client-calendar-report-print-root a {
+    color: #16324f !important;
+    text-decoration: none !important;
+  }
+}
+
+@media print {
+  body.client-report-print-active,
+  body.client-report-print-active * {
+    visibility: hidden !important;
+  }
+
+  body.client-report-print-active #client-report-print-root,
+  body.client-report-print-active #client-report-print-root * {
+    visibility: visible !important;
+  }
+
+  body.client-report-print-active #client-report-print-root {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    overflow: visible;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.client-report-print-active .client-report-print-heading {
+    display: block !important;
+    margin-bottom: 1rem;
+  }
+
+  body.client-report-print-active .client-report-print-disclaimer {
+    display: block !important;
+  }
 }

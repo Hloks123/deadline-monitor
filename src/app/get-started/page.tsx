@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 type CoverageGroup = {
   title: string;
@@ -18,21 +18,45 @@ type Plan = {
   coverage: CoverageGroup[];
 };
 
+const industries = [
+  { value: "construction", label: "Construction" },
+  { value: "transport", label: "Transport & Fleet" },
+  { value: "property", label: "Property & Real Estate" },
+  { value: "professional-services", label: "Professional Services" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "retail", label: "Retail" },
+  { value: "wholesale", label: "Wholesale & Distribution" },
+  { value: "hospitality", label: "Hospitality & Tourism" },
+  { value: "agriculture", label: "Agriculture & Farming" },
+  { value: "mining", label: "Mining & Resources" },
+  { value: "engineering", label: "Engineering" },
+  { value: "security", label: "Security Services" },
+  { value: "cleaning", label: "Cleaning & Facilities Management" },
+  { value: "healthcare", label: "Healthcare & Medical Services" },
+  { value: "education", label: "Education & Training" },
+  { value: "financial-services", label: "Financial & Accounting Services" },
+  { value: "information-technology", label: "Information Technology" },
+  { value: "telecommunications", label: "Telecommunications" },
+  { value: "automotive", label: "Automotive" },
+  { value: "logistics", label: "Logistics & Warehousing" },
+  { value: "other", label: "Other" },
+];
+
 const plans: Record<string, Plan> = {
   "1-25": {
     name: "Starter",
     recordLimit: "Up to 25 active monitored records",
     monthly: "R399 / month",
-    setup: "R1,500 once-off setup",
+    setup: "R500 once-off setup",
     description:
       "For small businesses beginning to organise and monitor important recurring records.",
     coverage: [
       {
         title: "Account and access",
         items: [
-          "One authorised user",
-          "Secure account access",
-          "Client-specific monitoring workspace",
+          "1 user",
+          "Access scope agreed before onboarding",
+          "Organisation-specific workspace",
         ],
       },
       {
@@ -67,16 +91,16 @@ const plans: Record<string, Plan> = {
     name: "Standard",
     recordLimit: "Up to 75 active monitored records",
     monthly: "R799 / month",
-    setup: "R2,500 once-off setup",
+    setup: "R1,000 once-off setup",
     description:
       "For growing businesses monitoring more records across multiple authorised users.",
     coverage: [
       {
         title: "Account and access",
         items: [
-          "Up to three authorised users",
-          "Secure account access",
-          "Client-specific monitoring workspace",
+          "Up to 4 users",
+          "Access scope agreed before onboarding",
+          "Organisation-specific workspace",
         ],
       },
       {
@@ -98,7 +122,7 @@ const plans: Record<string, Plan> = {
       {
         title: "Communication and reporting",
         items: [
-          "Reviewed reminder emails",
+          "Reminder review workflow",
           "Monthly monitoring report",
           "Notification history",
           "Renewal and monitored-record history",
@@ -111,16 +135,16 @@ const plans: Record<string, Plan> = {
     name: "Managed",
     recordLimit: "Up to 150 active monitored records",
     monthly: "R1,499 / month",
-    setup: "R4,500 once-off setup",
+    setup: "R2,000 once-off setup",
     description:
       "For businesses requiring active monitoring, follow-up, reporting and higher-touch support.",
     coverage: [
       {
         title: "Account and access",
         items: [
-          "Authorised users confirmed during onboarding",
-          "Secure account access",
-          "Client-specific monitoring workspace",
+          "Up to 12 users",
+          "Access scope agreed before onboarding",
+          "Organisation-specific workspace",
         ],
       },
       {
@@ -135,15 +159,15 @@ const plans: Record<string, Plan> = {
         title: "Active monitoring",
         items: [
           "Everything included in Standard",
-          "Active follow-up on outstanding actions",
-          "High-risk overdue-item escalation",
-          "Client non-response follow-up",
+          "Priority follow-up workflow",
+          "Overdue-item review",
+          "Non-response review",
         ],
       },
       {
         title: "Communication and reporting",
         items: [
-          "Reviewed client reminder communications",
+          "Reviewed reminder workflow",
           "Monthly monitoring report",
           "Quarterly monitoring review",
           "Notification and communication history",
@@ -198,99 +222,63 @@ const plans: Record<string, Plan> = {
   },
 };
 
-const industries = [
-  { value: "construction", label: "Construction" },
-  { value: "transport", label: "Transport & Fleet" },
-  { value: "property", label: "Property & Real Estate" },
-  {
-    value: "professional-services",
-    label: "Professional Services",
-  },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "retail", label: "Retail" },
-  {
-    value: "wholesale",
-    label: "Wholesale & Distribution",
-  },
-  {
-    value: "hospitality",
-    label: "Hospitality & Tourism",
-  },
-  {
-    value: "agriculture",
-    label: "Agriculture & Farming",
-  },
-  {
-    value: "mining",
-    label: "Mining & Resources",
-  },
-  { value: "engineering", label: "Engineering" },
-  {
-    value: "security",
-    label: "Security Services",
-  },
-  {
-    value: "cleaning",
-    label: "Cleaning & Facilities Management",
-  },
-  {
-    value: "healthcare",
-    label: "Healthcare & Medical Services",
-  },
-  {
-    value: "education",
-    label: "Education & Training",
-  },
-  {
-    value: "financial-services",
-    label: "Financial & Accounting Services",
-  },
-  {
-    value: "information-technology",
-    label: "Information Technology",
-  },
-  {
-    value: "telecommunications",
-    label: "Telecommunications",
-  },
-  { value: "automotive", label: "Automotive" },
-  {
-    value: "logistics",
-    label: "Logistics & Warehousing",
-  },
-  { value: "other", label: "Other" },
-];
-
 export default function GetStartedPage() {
   const [recordCount, setRecordCount] = useState("");
+  const [enquiryNotice, setEnquiryNotice] = useState("");
 
   const recommendedPlan = plans[recordCount] ?? null;
   const needsAssistance = recordCount === "not-sure";
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const body = [
+      `Contact name: ${String(formData.get("contactName") ?? "").trim()}`,
+      `Company: ${String(formData.get("companyName") ?? "").trim()}`,
+      `Business email: ${String(formData.get("email") ?? "").trim()}`,
+      `Phone: ${String(formData.get("phone") ?? "").trim() || "Not supplied"}`,
+      `Industry: ${String(formData.get("industry") ?? "").trim()}`,
+      `Approximate number of records: ${String(formData.get("recordCount") ?? "").trim() || "Not supplied"}`,
+      `Preferred contact method: ${String(formData.get("contactMethod") ?? "").trim()}`,
+      "",
+      "Message:",
+      String(formData.get("message") ?? "").trim() || "Not supplied",
+    ].join("\n");
+    const mailtoUrl = new URL("mailto:consultant1@compimento.co.za");
+    mailtoUrl.searchParams.set("subject", "Deadline Monitor enquiry");
+    mailtoUrl.searchParams.set("body", body);
+
+    setEnquiryNotice(
+      "This website has not sent or stored your enquiry. Review the prefilled email and send it from your email app, or email consultant1@compimento.co.za directly.",
+    );
+    window.location.href = mailtoUrl.toString();
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       {/* STICKY HEADER */}
       <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900 text-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link href="/" className="flex items-center gap-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-4">
             <div className="rounded-xl bg-white p-2">
               <Image
-                src="/doc-monitor-logo.png"
-                alt="Doc Monitor SA logo"
+                src="/deadline-monitor-logo.png"
+                alt="Deadline Monitor logo"
                 width={64}
                 height={64}
                 priority
-                className="h-12 w-12 object-contain"
+                className="h-10 w-10 object-contain sm:h-12 sm:w-12"
               />
             </div>
 
-            <div>
-              <p className="text-xl font-bold">
-                Doc Monitor SA
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold sm:text-xl">
+                Deadline Monitor
               </p>
 
-              <p className="text-sm font-medium text-teal-400">
-                Your documents. Monitored.
+              <p className="hidden text-sm font-medium text-teal-400 sm:block">
+                Know what&apos;s due. Before it&apos;s overdue.
               </p>
             </div>
           </Link>
@@ -307,35 +295,35 @@ export default function GetStartedPage() {
       {/* COMPACT INTRODUCTION */}
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-10 md:py-12">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-600">
-            Get Started
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
+            Business monitoring application
           </p>
 
           <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight text-slate-900 md:text-5xl">
-            Let&apos;s find the right monitoring plan for your business.
+            Get Started
           </h1>
 
           <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600">
-            Tell us about your business and the approximate number of
-            records you need monitored. Doc Monitor SA will recommend the
-            appropriate plan.
+            Share your business and monitoring requirements to start an
+            onboarding enquiry. Initial onboarding may be limited while
+            Deadline Monitor completes its controlled rollout.
           </p>
         </div>
       </section>
 
       {/* FORM AND SIDEBAR */}
-      <section className="mx-auto grid max-w-7xl gap-10 px-6 py-12 lg:grid-cols-[1fr_390px]">
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[1fr_390px]">
         {/* FORM */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm md:p-10">
-          <form className="space-y-10">
+        <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7 md:p-10">
+          <form className="space-y-8" onSubmit={handleSubmit}>
             {/* CONTACT DETAILS */}
             <fieldset>
               <legend className="text-2xl font-bold text-slate-900">
-                Contact Details
+                Your details
               </legend>
 
               <p className="mt-2 text-slate-600">
-                Tell us who we should contact about your enquiry.
+                Use business contact details where possible.
               </p>
 
               <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -345,58 +333,43 @@ export default function GetStartedPage() {
                   type="text"
                   placeholder="Your full name"
                   required
+                  autoComplete="name"
                 />
 
                 <FormField
                   id="companyName"
-                  label="Company name"
+                  label="Company"
                   type="text"
                   placeholder="Business name"
                   required
+                  autoComplete="organization"
                 />
 
                 <FormField
                   id="email"
-                  label="Email address"
+                  label="Business email"
                   type="email"
                   placeholder="name@company.co.za"
                   required
+                  autoComplete="email"
                 />
 
                 <FormField
                   id="phone"
-                  label="Phone number"
+                  label="Telephone"
                   type="tel"
                   placeholder="+27"
                   required
+                  autoComplete="tel"
                 />
-              </div>
-            </fieldset>
 
-            <div className="border-t border-slate-200" />
-
-            {/* BUSINESS INFORMATION */}
-            <fieldset>
-              <legend className="text-2xl font-bold text-slate-900">
-                Business Information
-              </legend>
-
-              <p className="mt-2 text-slate-600">
-                This helps us understand the approximate scale of your
-                monitoring requirements.
-              </p>
-
-              <div className="mt-6 grid gap-6 md:grid-cols-2">
-                {/* INDUSTRY */}
                 <div>
                   <label
                     htmlFor="industry"
                     className="block text-sm font-semibold text-slate-700"
                   >
-                    Industry / Business Sector
-                    <span className="text-red-600"> *</span>
+                    Industry <span className="text-red-600">*</span>
                   </label>
-
                   <select
                     id="industry"
                     name="industry"
@@ -407,26 +380,36 @@ export default function GetStartedPage() {
                     <option value="" disabled>
                       Select your industry
                     </option>
-
                     {industries.map((industry) => (
-                      <option
-                        key={industry.value}
-                        value={industry.value}
-                      >
+                      <option key={industry.value} value={industry.value}>
                         {industry.label}
                       </option>
                     ))}
                   </select>
                 </div>
+              </div>
+            </fieldset>
 
-                {/* RECORD COUNT */}
+            <div className="border-t border-slate-200" />
+
+            <fieldset>
+              <legend className="text-2xl font-bold text-slate-900">
+                About your monitoring needs
+              </legend>
+
+              <p className="mt-2 text-slate-600">
+                Select the range that best matches the records you need
+                monitored.
+              </p>
+
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
                 <div>
                   <label
                     htmlFor="recordCount"
                     className="block text-sm font-semibold text-slate-700"
                   >
-                    How many active records need monitoring?
-                    <span className="text-red-600"> *</span>
+                    How many active records need monitoring?{" "}
+                    <span className="text-red-600">*</span>
                   </label>
 
                   <select
@@ -465,13 +448,11 @@ export default function GetStartedPage() {
                   </select>
 
                   <p className="mt-2 text-xs leading-5 text-slate-500">
-                    Each separately monitored item counts as one record.
-                    Folders, reminders, previous renewals and archived records
-                    do not count.
+                    The selected record range determines the package
+                    recommendation; it does not change package user limits.
                   </p>
                 </div>
 
-                {/* CONTACT METHOD */}
                 <div>
                   <label
                     htmlFor="contactMethod"
@@ -479,7 +460,6 @@ export default function GetStartedPage() {
                   >
                     Preferred contact method
                   </label>
-
                   <select
                     id="contactMethod"
                     name="contactMethod"
@@ -491,35 +471,37 @@ export default function GetStartedPage() {
                   </select>
                 </div>
               </div>
+
+              <section aria-labelledby="plan-pricing-heading" className="mt-8">
+                <h2 id="plan-pricing-heading" className="text-xl font-bold text-slate-900">
+                  Your Plan Recommendation
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Prices shown are indicative and subject to final service
+                  terms. Fees exclude VAT where applicable.
+                </p>
+
+                {needsAssistance && <RecordCountAssistance />}
+                {recommendedPlan && <RecommendedPlan plan={recommendedPlan} />}
+              </section>
             </fieldset>
 
-            {/* PLAN RECOMMENDATION */}
-            <section>
-              <h2 className="text-2xl font-bold text-slate-900">
-                Your Plan Recommendation
-              </h2>
-
-              {!recordCount && (
-                <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
-                  <p className="font-semibold text-slate-700">
-                    Select your approximate number of active records.
-                  </p>
-
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Your recommended plan and complete service coverage
-                    will appear automatically.
-                  </p>
-                </div>
-              )}
-
-              {needsAssistance && (
-                <RecordCountAssistance />
-              )}
-
-              {recommendedPlan && (
-                <RecommendedPlan plan={recommendedPlan} />
-              )}
-            </section>
+            <div>
+              <label
+                htmlFor="message"
+                className="block text-sm font-semibold text-slate-700"
+              >
+                Message (optional)
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                maxLength={2000}
+                placeholder="What would you like to discuss?"
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
+              />
+            </div>
 
             {/* PRIVACY MESSAGE */}
             <div
@@ -531,9 +513,11 @@ export default function GetStartedPage() {
               </p>
 
               <p className="mt-2 text-sm leading-6 text-teal-800">
-                Please do not include confidential documents or sensitive
-                information. We only need your basic contact and business
-                details to respond to your enquiry.
+                The form opens your email application. This website has not
+                independently transmitted or stored your enquiry. Do not
+                include documents, full identity numbers, bank statements, tax
+                returns, passwords, SARS/CIPC credentials or confidential
+                document contents.
               </p>
 
               <p className="mt-3 text-xs leading-5 text-teal-800">
@@ -548,25 +532,32 @@ export default function GetStartedPage() {
               </p>
             </div>
 
-            {/* SUBMIT */}
             <div className="border-t border-slate-200 pt-8">
               <button
-                type="button"
-                className="w-full rounded-xl bg-teal-600 px-8 py-4 font-semibold text-white shadow-sm transition hover:bg-teal-700 sm:w-auto"
+                type="submit"
+                className="min-h-11 w-full rounded-xl bg-teal-700 px-8 py-3.5 font-semibold text-white shadow-sm transition hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 sm:w-auto"
               >
                 Submit Enquiry
               </button>
 
-              <p className="mt-4 text-sm text-slate-500">
-                We will use your contact details only to respond to this
-                enquiry.
+              <p aria-live="polite" className="mt-4 text-sm leading-6 text-slate-600">
+                {enquiryNotice ||
+                  "Your email app will open with a draft for you to review and send. The website has not independently transmitted or stored your enquiry. If it does not open, email "}
+                {!enquiryNotice && (
+                  <a
+                    className="font-semibold text-teal-800 underline underline-offset-2"
+                    href="mailto:consultant1@compimento.co.za"
+                  >
+                    consultant1@compimento.co.za
+                  </a>
+                )}
               </p>
             </div>
           </form>
         </div>
 
         {/* STICKY SIDEBAR */}
-        <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+        <aside className="min-w-0 space-y-6 lg:sticky lg:top-28 lg:self-start">
           {/* WHAT HAPPENS NEXT */}
           <div className="rounded-3xl bg-slate-900 p-7 text-white">
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-400">
@@ -597,13 +588,12 @@ export default function GetStartedPage() {
           {/* DOCUMENT PRIVACY */}
           <div className="rounded-3xl border border-teal-200 bg-teal-50 p-7">
             <p className="font-bold text-teal-950">
-              Your documents stay with you.
+              Metadata monitoring, not document storage.
             </p>
 
             <p className="mt-3 text-sm leading-6 text-teal-800">
-              Doc Monitor SA monitors approved record information and
-              important dates. Your actual confidential company documents
-              remain in your own environment.
+              Version 1 does not store clients&apos; underlying confidential
+              company documents.
             </p>
           </div>
 
@@ -620,28 +610,28 @@ export default function GetStartedPage() {
 
             <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
               <li className="flex gap-3">
-                <span className="font-bold text-teal-600">
+                <span className="font-bold text-teal-700">
                   ✓
                 </span>
                 Each separately monitored item counts as one record.
               </li>
 
               <li className="flex gap-3">
-                <span className="font-bold text-teal-600">
+                <span className="font-bold text-teal-700">
                   ✓
                 </span>
                 Folders and subfolders do not count.
               </li>
 
               <li className="flex gap-3">
-                <span className="font-bold text-teal-600">
+                <span className="font-bold text-teal-700">
                   ✓
                 </span>
                 Renewing an existing item does not create a new record.
               </li>
 
               <li className="flex gap-3">
-                <span className="font-bold text-teal-600">
+                <span className="font-bold text-teal-700">
                   ✓
                 </span>
                 Archived records do not count toward the active total.
@@ -669,7 +659,7 @@ export default function GetStartedPage() {
 
             <p className="mt-3 text-sm leading-6 text-slate-600">
               Access your monitored records and account information through
-              the secure Doc Monitor SA portal.
+              the account portal.
             </p>
 
             <Link
@@ -688,8 +678,8 @@ export default function GetStartedPage() {
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-white p-1.5">
               <Image
-                src="/doc-monitor-logo.png"
-                alt="Doc Monitor SA logo"
+                src="/deadline-monitor-logo.png"
+                alt="Deadline Monitor logo"
                 width={42}
                 height={42}
                 className="h-9 w-9 object-contain"
@@ -698,11 +688,11 @@ export default function GetStartedPage() {
 
             <div>
               <p className="font-bold text-white">
-                Doc Monitor SA
+                Deadline Monitor
               </p>
 
               <p className="text-xs text-teal-400">
-                Your documents. Monitored.
+                Know what&apos;s due. Before it&apos;s overdue.
               </p>
             </div>
           </div>
@@ -723,9 +713,21 @@ export default function GetStartedPage() {
             </Link>
 
             <p className="text-slate-500">
-              © 2026 Doc Monitor SA. All rights reserved.
+              © 2026 Deadline Monitor. All rights reserved.
             </p>
           </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-6 pb-8 text-center text-sm text-slate-400">
+          <p>Legal entity: pending CIPC registration.</p>
+          <a className="mt-2 inline-block text-teal-300 underline underline-offset-2" href="mailto:consultant1@compimento.co.za">
+            consultant1@compimento.co.za
+          </a>
+          <a className="mt-1 block text-teal-300 underline underline-offset-2" href="tel:+27735019603">
+            073 501 9603
+          </a>
+          <p className="mt-2">
+            5 Second Street, Arboretum, Bloemfontein, 9301, South Africa
+          </p>
         </div>
       </footer>
     </main>
@@ -738,7 +740,7 @@ function RecommendedPlan({ plan }: { plan: Plan }) {
       {/* PLAN SUMMARY */}
       <div className="border-b border-teal-200 p-7">
         <p className="text-sm font-bold uppercase tracking-[0.15em] text-teal-700">
-          Recommended for your business
+          Indicative range
         </p>
 
         <div className="mt-3 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -771,8 +773,12 @@ function RecommendedPlan({ plan }: { plan: Plan }) {
       {/* GROUPED COVERAGE */}
       <div className="bg-white p-7">
         <h4 className="text-xl font-bold text-slate-900">
-          What this plan covers
+          Package features
         </h4>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Features and service details are subject to the applicable proposal
+          or service order.
+        </p>
 
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           {plan.coverage.map((group) => (
@@ -804,7 +810,7 @@ function CoverageGroupCard({
             key={item}
             className="flex items-start gap-3 text-sm leading-6 text-slate-700"
           >
-            <span className="font-bold text-teal-600">
+            <span className="font-bold text-teal-700">
               ✓
             </span>
 
@@ -828,7 +834,7 @@ function RecordCountAssistance() {
       </h3>
 
       <p className="mt-3 leading-7 text-blue-900">
-        Doc Monitor SA can help prepare a starting register and identify
+        Deadline Monitor may help prepare a starting register and identify
         the individual records, assets or obligations that need their own
         monitoring lifecycle.
       </p>
@@ -870,12 +876,14 @@ function FormField({
   type,
   placeholder,
   required = false,
+  autoComplete,
 }: {
   id: string;
   label: string;
   type: string;
   placeholder: string;
   required?: boolean;
+  autoComplete?: string;
 }) {
   return (
     <div>
@@ -896,6 +904,7 @@ function FormField({
         type={type}
         required={required}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
       />
     </div>
@@ -913,7 +922,7 @@ function NextStep({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-500 text-sm font-bold text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-700 text-sm font-bold text-white">
         {number}
       </div>
 

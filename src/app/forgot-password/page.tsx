@@ -3,55 +3,76 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!email.trim()) {
-      return;
-    }
+    if (!email.trim() || pending) return;
 
-    setSubmitted(true);
+    setPending(true);
+    setError("");
+
+    try {
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      const { error: resetError } = await createClient().auth.resetPasswordForEmail(
+        email.trim(),
+        { redirectTo: callbackUrl.toString() },
+      );
+
+      if (resetError) {
+        setError("We could not submit your request. Please try again later.");
+        return;
+      }
+
+      setSubmitted(true);
+    } catch {
+      setError("We could not submit your request. Please try again later.");
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       {/* HEADER */}
       <header className="border-b border-slate-700 bg-slate-900 text-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link
             href="/"
-            className="flex items-center gap-4"
+            className="flex min-w-0 items-center gap-2 sm:gap-4"
           >
-            <div className="rounded-xl bg-white p-2">
+            <div className="rounded-xl bg-white p-1.5 sm:p-2">
               <Image
-                src="/doc-monitor-logo.png"
-                alt="Doc Monitor SA logo"
-                width={64}
-                height={64}
+                src="/deadline-monitor-logo.png"
+                alt="Deadline Monitor logo"
+                width={48}
+                height={48}
                 priority
-                className="h-12 w-12 object-contain"
+                className="h-10 w-10 object-contain sm:h-12 sm:w-12"
               />
             </div>
 
-            <div>
-              <p className="text-xl font-bold">
-                Doc Monitor SA
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold sm:text-xl">
+                Deadline Monitor
               </p>
 
-              <p className="text-sm font-medium text-teal-400">
-                Your documents. Monitored.
+              <p className="hidden text-sm font-medium text-teal-400 sm:block">
+                Know what&apos;s due. Before it&apos;s overdue.
               </p>
             </div>
           </Link>
 
           <Link
             href="/login"
-            className="rounded-xl border border-slate-600 px-5 py-3 text-sm font-semibold text-white transition hover:border-teal-400 hover:text-teal-400"
+            className="min-h-11 shrink-0 rounded-xl border border-slate-600 px-3 py-2 text-xs font-semibold text-white transition hover:border-teal-400 hover:text-teal-400 sm:px-5 sm:py-3 sm:text-sm"
           >
             Back to Login
           </Link>
@@ -65,16 +86,16 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto w-full max-w-md">
             {!submitted ? (
               <>
-                <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-600">
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
                   Account Recovery
                 </p>
 
                 <h1 className="mt-4 text-4xl font-bold leading-tight text-slate-900">
-                  Forgot your password?
+                  Reset your Deadline Monitor password
                 </h1>
 
                 <p className="mt-4 leading-7 text-slate-600">
-                  Enter the email address associated with your Doc Monitor SA
+                  Enter the email address associated with your Deadline Monitor
                   account. If an eligible account exists, password-reset
                   instructions will be sent to that address.
                 </p>
@@ -103,16 +124,27 @@ export default function ForgotPasswordPage() {
                         setEmail(event.target.value)
                       }
                       placeholder="name@company.co.za"
+                      aria-describedby="password-reset-help"
                       className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3.5 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100"
                     />
+                    <p id="password-reset-help" className="mt-2 text-sm text-slate-600">
+                      If an eligible account exists, we will show a confirmation
+                      without revealing whether the address is registered.
+                    </p>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-teal-600 px-6 py-4 font-semibold text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                    disabled={pending}
+                    className="w-full cursor-pointer rounded-xl bg-teal-700 px-6 py-4 font-semibold text-white shadow-sm transition hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Send Reset Instructions
+                    {pending ? "Sending…" : "Send Reset Instructions"}
                   </button>
+                  {error && (
+                    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+                      {error}
+                    </p>
+                  )}
                 </form>
 
                 <div className="mt-8 border-t border-slate-200 pt-6">
@@ -143,7 +175,7 @@ export default function ForgotPasswordPage() {
               </p>
 
               <p className="mt-2 text-sm leading-6 text-teal-800">
-                Doc Monitor SA will never ask you to send your password by
+                Deadline Monitor will never ask you to send your password by
                 email, telephone or through the enquiry form.
               </p>
             </div>
@@ -162,15 +194,14 @@ export default function ForgotPasswordPage() {
             </h2>
 
             <p className="mt-5 text-lg leading-8 text-slate-300">
-              Password recovery forms part of the secure account-access
-              controls planned for the Doc Monitor SA platform.
+              Password recovery is available for eligible accounts.
             </p>
 
             <div className="mt-10 space-y-5">
               <RecoveryStep
                 number="01"
                 title="Enter your account email"
-                text="Use the email address associated with your Doc Monitor SA account."
+                text="Use the email address associated with your Deadline Monitor account."
               />
 
               <RecoveryStep
@@ -199,8 +230,11 @@ export default function ForgotPasswordPage() {
 
               <p className="mt-3 text-sm leading-6 text-slate-300">
                 Do not use a reset link you did not request. If you believe
-                someone is attempting to access your account, contact Doc
-                Monitor SA through the official support channel.
+                someone is attempting to access your account, contact{" "}
+                <a className="font-semibold text-teal-300 underline underline-offset-2" href="mailto:consultant1@compimento.co.za">
+                  consultant1@compimento.co.za
+                </a>
+                .
               </p>
             </div>
 
@@ -210,9 +244,8 @@ export default function ForgotPasswordPage() {
               </p>
 
               <p className="mt-3 text-sm leading-6 text-teal-100">
-                Administrator and consultant accounts will use additional
-                security controls, including multi-factor authentication,
-                when production authentication is enabled.
+                Use only the account access controls configured for your pilot.
+                No additional authentication feature is promised by this page.
               </p>
             </div>
           </div>
@@ -225,8 +258,8 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-white p-1.5">
               <Image
-                src="/doc-monitor-logo.png"
-                alt="Doc Monitor SA logo"
+                src="/deadline-monitor-logo.png"
+                alt="Deadline Monitor logo"
                 width={40}
                 height={40}
                 className="h-8 w-8 object-contain"
@@ -235,11 +268,11 @@ export default function ForgotPasswordPage() {
 
             <div>
               <p className="text-sm font-bold text-white">
-                Doc Monitor SA
+                Deadline Monitor
               </p>
 
               <p className="text-xs text-teal-400">
-                Your documents. Monitored.
+                Know what&apos;s due. Before it&apos;s overdue.
               </p>
             </div>
           </div>
@@ -267,7 +300,7 @@ export default function ForgotPasswordPage() {
             </Link>
 
             <span className="text-slate-500">
-              © 2026 Doc Monitor SA
+              © 2026 Deadline Monitor
             </span>
           </div>
         </div>
@@ -287,7 +320,7 @@ function ResetRequested({
         ✓
       </div>
 
-      <p className="mt-7 text-sm font-bold uppercase tracking-[0.2em] text-teal-600">
+      <p className="mt-7 text-sm font-bold uppercase tracking-[0.2em] text-teal-700">
         Request Received
       </p>
 
@@ -296,7 +329,7 @@ function ResetRequested({
       </h1>
 
       <p className="mt-5 leading-7 text-slate-600">
-        If an eligible Doc Monitor SA account matches the email address you
+        If an eligible Deadline Monitor account matches the email address you
         entered, password-reset instructions will be sent to that address.
       </p>
 
@@ -313,7 +346,7 @@ function ResetRequested({
           </li>
 
           <li>
-            • Allow only official Doc Monitor SA reset messages to guide the
+            • Allow only official Deadline Monitor reset messages to guide the
             recovery process.
           </li>
         </ul>
@@ -322,7 +355,7 @@ function ResetRequested({
       <div className="mt-7 flex flex-col gap-3 sm:flex-row">
         <Link
           href="/login"
-          className="rounded-xl bg-teal-600 px-6 py-3.5 text-center font-semibold text-white transition hover:bg-teal-700"
+          className="rounded-xl bg-teal-700 px-6 py-3.5 text-center font-semibold text-white transition hover:bg-teal-800"
         >
           Return to Login
         </Link>
@@ -350,7 +383,7 @@ function RecoveryStep({
 }) {
   return (
     <div className="flex gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-500 text-sm font-bold text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-700 text-sm font-bold text-white">
         {number}
       </div>
 
