@@ -9,6 +9,10 @@ import {
 import { getSupabaseConfig } from "./config";
 
 export async function updateSession(request: NextRequest) {
+  if (request.nextUrl.pathname === "/auth/callback") {
+    return NextResponse.next({ request });
+  }
+
   const { url, publishableKey } = getSupabaseConfig();
   let response = NextResponse.next({ request });
 
