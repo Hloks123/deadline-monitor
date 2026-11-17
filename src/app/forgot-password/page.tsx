@@ -21,8 +21,6 @@ export default function ForgotPasswordPage() {
 
     try {
       const callbackUrl = new URL("/auth/callback", window.location.origin);
-      callbackUrl.searchParams.set("flow", "recovery");
-callbackUrl.searchParams.set("next", "/update-password");
 
       const { error: resetError } = await createClient().auth.resetPasswordForEmail(
         email.trim(),
