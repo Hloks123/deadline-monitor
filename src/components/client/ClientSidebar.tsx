@@ -129,9 +129,6 @@ export default function ClientSidebar({
               <span className="mt-0.5 block truncate text-xs text-slate-400">{isSeniorManager ? "Senior Manager" : jobTitle || "Company user"}</span>
             </span>
           </div>
-          <Link href="/" onClick={onNavigate} aria-label="Return to Deadline-Monitor website" className="mt-2 flex min-h-[36px] items-center text-sm font-semibold text-teal-400 hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400">
-            <span>Return to Website</span>
-          </Link>
           <Link href="/client/account" onClick={onNavigate} aria-current={pathname === "/client/account" ? "page" : undefined} className={`mt-1 flex min-h-[36px] items-center gap-3 rounded-md px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 ${pathname === "/client/account" ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <span aria-hidden="true">◉</span>
             Account
