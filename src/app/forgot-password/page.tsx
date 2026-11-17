@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       <header className="border-b border-slate-700 bg-slate-900 text-white shadow-sm">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <Link
-            href="/"
+            href="/login"
             className="flex min-w-0 items-center gap-2 sm:gap-4"
           >
             <div className="rounded-xl bg-white p-1.5 sm:p-2">
@@ -278,20 +278,6 @@ export default function ForgotPasswordPage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-5 text-sm">
-            <Link
-              href="/privacy"
-              className="transition hover:text-teal-400"
-            >
-              Privacy
-            </Link>
-
-            <Link
-              href="/terms"
-              className="transition hover:text-teal-400"
-            >
-              Terms
-            </Link>
-
             <Link
               href="/login"
               className="transition hover:text-teal-400"

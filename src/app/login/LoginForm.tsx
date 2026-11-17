@@ -78,7 +78,7 @@ export default function LoginForm({ initialError = "" }: { initialError?: string
       {/* HEADER */}
       <header className="border-b border-slate-700 bg-slate-900 text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-4">
+          <Link href="/login" className="flex min-w-0 items-center gap-2 sm:gap-4">
             <div className="rounded-xl bg-white p-1.5 sm:p-2">
               <Image
                 src="/deadline-monitor-logo.png"
@@ -101,12 +101,6 @@ export default function LoginForm({ initialError = "" }: { initialError?: string
             </div>
           </Link>
 
-          <Link
-            href="/"
-            className="min-h-11 shrink-0 rounded-xl border border-slate-600 px-3 py-2 text-xs font-semibold text-white transition hover:border-teal-400 hover:text-teal-400 sm:px-5 sm:py-3 sm:text-sm"
-          >
-            Back to Home
-          </Link>
         </div>
       </header>
 
@@ -237,14 +231,7 @@ export default function LoginForm({ initialError = "" }: { initialError?: string
             {/* SUPPORT */}
             <div className="mt-8 border-t border-slate-200 pt-6">
               <p className="text-sm leading-6 text-slate-500">
-                Need help accessing your account?{" "}
-                <Link
-                  href="/get-started"
-                  className="font-semibold text-teal-700 hover:text-teal-800"
-                >
-                  Get Started
-                </Link>
-                {" "}or email{" "}
+                Need help accessing your account? Email{" "}
                 <a
                   href="mailto:consultant1@compimento.co.za"
                   className="font-semibold text-teal-700 hover:text-teal-800"
@@ -352,20 +339,6 @@ export default function LoginForm({ initialError = "" }: { initialError?: string
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-5 text-sm">
-            <Link
-              href="/privacy"
-              className="transition hover:text-teal-400"
-            >
-              Privacy
-            </Link>
-
-            <Link
-              href="/terms"
-              className="transition hover:text-teal-400"
-            >
-              Terms
-            </Link>
-
             <span className="text-slate-500">
               © 2026 Deadline Monitor
             </span>

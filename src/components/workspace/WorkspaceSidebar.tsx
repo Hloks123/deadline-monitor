@@ -505,14 +505,6 @@ export default function WorkspaceSidebar({
 
           </div>
 
-          <Link
-            href="/"
-            onClick={onNavigate}
-            className="mt-3 flex min-h-[36px] items-center text-sm font-semibold text-teal-400 hover:text-teal-300"
-          >
-            Return to Website
-          </Link>
-
           <SignOutButton onNavigate={onNavigate} />
 
         </div>
