@@ -46,7 +46,17 @@ export async function GET(request: NextRequest) {
       flowId ? { flowId } : undefined,
     );
 
-    if (error) return invalidLinkRedirect(request, nextPath);
+    if (error) {
+      console.error("[auth/callback] PKCE code exchange failed", {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        hasCode: Boolean(code),
+        hasFlowId: Boolean(flowId),
+      });
+      return invalidLinkRedirect(request, nextPath);
+    }
   } else {
     return invalidLinkRedirect(request, nextPath);
   }
