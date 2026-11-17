@@ -40,9 +40,18 @@ export async function GET(request: NextRequest) {
 
     if (error) return invalidLinkRedirect(request, nextPath);
   } else if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) return invalidLinkRedirect(request, nextPath);
+
+    const isRecovery =
+      "redirectType" in data && data.redirectType === "recovery";
+    const destination = getSafeNextPath(
+      request,
+      requestedNext,
+      isRecovery ? "/update-password" : "/login",
+    );
+    return NextResponse.redirect(new URL(destination, request.url));
   } else {
     return invalidLinkRedirect(request, nextPath);
   }
